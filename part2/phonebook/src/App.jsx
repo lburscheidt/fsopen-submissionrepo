@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import personService from "./services/persons";
+import "./index.css";
 
 const Filter = ({ searchInput, handleSearchChange }) => {
 	return (
@@ -41,29 +41,58 @@ const Persons = (props) => {
 	return (
 		<div>
 			{props.personsToShow.map((person) => (
-				<p key={person.id}>
-					{person.name} {person.number}
-					<button
-						type="button"
-						id={person.id}
-						onClick={() => {
-							if (window.confirm(`Do you want to delete ${person.name}?`)) {
-								props.deletePerson(person.id);
-							}
-						}}
-					>
-						delete
-					</button>
-				</p>
+				<Person
+					key={person.id}
+					id={person.id}
+					name={person.name}
+					number={person.number}
+					deletePerson={props.deletePerson}
+				/>
 			))}
 		</div>
 	);
 };
+
+const Person = (props) => {
+	return (
+		<p key={props.id}>
+			{props.name} {props.number}
+			<button
+				type="button"
+				onClick={() => {
+					if (window.confirm(`Do you want to delete ${props.name}?`)) {
+						props.deletePerson(props.id);
+					}
+				}}
+			>
+				Delete
+			</button>
+		</p>
+	);
+};
+
+const Notification = ({ message }) => {
+	if (message === "") {
+		return null;
+	}
+
+	return <div className="error">{message}</div>;
+};
+const SuccessNotification = ({ message }) => {
+	if (message === "") {
+		return null;
+	}
+
+	return <div className="success">{message}</div>;
+};
+
 const App = () => {
 	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
 	const [newNumber, setNewNumber] = useState("");
 	const [searchInput, setSearchInput] = useState("");
+	const [errorMessage, setErrorMessage] = useState("");
+	const [successMessage, setSuccessMessage] = useState("");
 
 	useEffect(() => {
 		personService.getAll().then((persons) => {
@@ -81,15 +110,35 @@ const App = () => {
 					`${newName} is already in phonebook, want to replace the old number with a new one?`,
 				)
 			) {
-				personService.update(id, newPerson);
+				personService
+					.update(id, newPerson)
+					.then((response) => {
+						setSuccessMessage(`Successfully added new number for ${newName}`);
+						setTimeout(() => {
+							setSuccessMessage("");
+						}, 5000);
+					})
+					.catch((error) => {
+						setErrorMessage(`${newName} was already removed from the server`);
+						setTimeout(() => {
+							setErrorMessage("");
+						}, 5000);
+					});
+
 				personService.getAll().then((persons) => {
 					setPersons(persons);
 				});
 			}
 		} else {
 			setPersons(persons.concat(newPerson));
-			personService.create(newPerson);
+			personService.create(newPerson).then((response) => {
+				setSuccessMessage(`Successfully added ${newName}`);
+				setTimeout(() => {
+					setSuccessMessage("");
+				}, 5000);
+			});
 		}
+
 		setNewName("");
 		setNewNumber("");
 	}
@@ -121,6 +170,8 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
+			<Notification message={errorMessage} />
+			<SuccessNotification message={successMessage} />
 			<Filter
 				searchInput={searchInput}
 				handleSearchChange={handleSearchChange}
