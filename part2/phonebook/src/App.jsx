@@ -2,14 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import personService from "./services/persons";
 
-const Person = ({ name, number }) => {
-	return (
-		<p key={name}>
-			{name} {number}
-		</p>
-	);
-};
-
 const Filter = ({ searchInput, handleSearchChange }) => {
 	return (
 		<div>
@@ -44,12 +36,29 @@ const PersonForm = (props) => {
 	);
 };
 
-const Persons = ({ persons }) => {
-	return persons.map((p) => (
-		<Person key={p.name} name={p.name} number={p.number} />
-	));
+const Persons = (props) => {
+	console.log(props);
+	return (
+		<div>
+			{props.personsToShow.map((person) => (
+				<p key={person.id}>
+					{person.name} {person.number}
+					<button
+						type="button"
+						id={person.id}
+						onClick={() => {
+							if (window.confirm(`Do you want to delete ${person.name}?`)) {
+								props.deletePerson(person.id);
+							}
+						}}
+					>
+						delete
+					</button>
+				</p>
+			))}
+		</div>
+	);
 };
-
 const App = () => {
 	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
@@ -81,6 +90,12 @@ const App = () => {
 				)
 			: persons;
 
+	const deletePerson = (id) => {
+		personService.remove(id).then(() => {
+			setPersons(persons.filter((person) => person.id !== id));
+		});
+	};
+
 	const handleNameChange = (event) => {
 		setNewName(event.target.value);
 	};
@@ -110,7 +125,7 @@ const App = () => {
 			/>
 
 			<h2>Numbers</h2>
-			<Persons persons={personsToShow} />
+			<Persons personsToShow={personsToShow} deletePerson={deletePerson} />
 		</div>
 	);
 };
