@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import personService from "./services/persons";
 
 const Person = ({ name, number }) => {
 	return (
@@ -56,8 +57,8 @@ const App = () => {
 	const [searchInput, setSearchInput] = useState("");
 
 	useEffect(() => {
-		axios.get("http://localhost:3001/persons").then((response) => {
-			setPersons(response.data);
+		personService.getAll().then((persons) => {
+			setPersons(persons);
 		});
 	}, []);
 
@@ -68,11 +69,7 @@ const App = () => {
 			alert(`${newName} is already in phonebook`);
 		} else {
 			setPersons(persons.concat(newPerson));
-			axios
-				.post("http://localhost:3001/persons", newPerson)
-				.then((response) => {
-					console.log(response);
-				});
+			personService.create(newPerson);
 		}
 		setNewName("");
 	}
