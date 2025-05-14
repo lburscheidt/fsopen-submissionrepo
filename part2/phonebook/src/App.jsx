@@ -75,12 +75,23 @@ const App = () => {
 		event.preventDefault();
 		const newPerson = { name: `${newName}`, number: `${newNumber}` };
 		if (persons.find((p) => p.name === newName)) {
-			alert(`${newName} is already in phonebook`);
+			const id = persons.find((p) => p.name === newName).id;
+			if (
+				window.confirm(
+					`${newName} is already in phonebook, want to replace the old number with a new one?`,
+				)
+			) {
+				personService.update(id, newPerson);
+				personService.getAll().then((persons) => {
+					setPersons(persons);
+				});
+			}
 		} else {
 			setPersons(persons.concat(newPerson));
 			personService.create(newPerson);
 		}
 		setNewName("");
+		setNewNumber("");
 	}
 
 	const personsToShow =
