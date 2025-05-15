@@ -7,7 +7,7 @@ const getAll = () => {
 };
 
 const getCountry = (country) => {
-	const request = axios.get(`${baseUrl}/${country}`);
+	const request = axios.get(`${baseUrl}/name/${country}`);
 	return request.then((response) => response.data);
 };
 
