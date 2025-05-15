@@ -14,9 +14,18 @@ const Filter = ({ searchInput, handleSearchChange }) => {
 };
 
 const Countries = (props) => {
+	const showCountry = () => {
+		console.log("button");
+	};
 	if (props.searchInput === "") {
 		return <div>No search input yet</div>;
 	}
+	const cca3 = props.countriesToShow.map((c) => c.cca3);
+	const name = props.countriesToShow.map((c) => c.name.common);
+	const capital = props.countriesToShow.map((c) => c.capital[0]);
+	const area = props.countriesToShow.map((c) => c.area);
+	const languages = props.countriesToShow.map((c) => c.languages);
+	const flag = props.countriesToShow.map((c) => c.flags.png);
 	if (props.countriesToShow.length > 10) {
 		return <div>Too many countries to show</div>;
 	}
@@ -24,18 +33,17 @@ const Countries = (props) => {
 		return (
 			<div>
 				{props.countriesToShow.map((country) => (
-					<p key={country.cca3}>{country.name.common}</p>
+					<p key={country.cca3}>
+						{country.name.common}
+						<button type="button" onClick={showCountry}>
+							Show
+						</button>
+					</p>
 				))}
 			</div>
 		);
 	}
 	if (props.countriesToShow.length === 1) {
-		const cca3 = props.countriesToShow.map((c) => c.cca3);
-		const name = props.countriesToShow.map((c) => c.name.common);
-		const capital = props.countriesToShow.map((c) => c.capital[0]);
-		const area = props.countriesToShow.map((c) => c.area);
-		const languages = props.countriesToShow.map((c) => c.languages);
-		const flag = props.countriesToShow.map((c) => c.flags.png);
 		return (
 			<div>
 				<div key={cca3}>
@@ -86,6 +94,8 @@ const App = () => {
 			/>
 			<h2>Countries</h2>
 			<Countries countriesToShow={countriesToShow} searchInput={searchInput} />
+			<h2>Weather in [Capital]</h2>
+			
 		</>
 	);
 };
