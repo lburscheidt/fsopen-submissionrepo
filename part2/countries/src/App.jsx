@@ -1,6 +1,32 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import countryService from "./services/countries";
 import "./index.css";
+
+const Weather = ({ lat, lon, capital }) => {
+	console.log(lat);
+	console.log(lon);
+	const [weather, setWeather] = useState({});
+
+	const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m&timezone=auto&wind_speed_unit=ms`;
+
+	useEffect(() => {
+		axios.get(url).then((response) => {
+			setWeather(response.data);
+		});
+	}, [url]);
+	return (
+		<div>
+			<h3>Weather in {capital}</h3>
+			{weather.current && (
+				<div>
+					<div>temperature {weather.current.temperature_2m}</div>
+					<div>wind {weather.current.wind_speed_10m} m/s</div>
+				</div>
+			)}
+		</div>
+	);
+};
 
 const Country = ({ filteredCountries }) => {
 	if (filteredCountries.length === 1) {
@@ -11,6 +37,8 @@ const Country = ({ filteredCountries }) => {
 		const area = country.area;
 		const languages = country.languages;
 		const flag = country.flags.png;
+		const lat = country.capitalInfo.latlng[0];
+		const lon = country.capitalInfo.latlng[1];
 		return (
 			<div key={cca3}>
 				<h1>{name}</h1>
@@ -23,6 +51,7 @@ const Country = ({ filteredCountries }) => {
 					))}
 				</ul>
 				<img className="flag" src={flag} alt={`Flag of ${name}`} />
+				<Weather lat={lat} lon={lon} capital={capital} />
 			</div>
 		);
 	}
@@ -40,10 +69,10 @@ const CountriesList = ({ searchInput, filteredCountries }) => {
 		return (
 			<div>
 				{filteredCountries.map((c) => (
-					<p key={c.cca3}>
+					<form key={c.cca3}>
 						{c.name.common}
-						<button type="button">Show</button>
-					</p>
+						<button type="submit">Show</button>
+					</form>
 				))}
 			</div>
 		);
@@ -53,10 +82,19 @@ const CountriesList = ({ searchInput, filteredCountries }) => {
 	}
 };
 
+const Filter = ({ searchInput, handleSearchChange }) => {
+	return (
+		<label>
+			find countries
+			<input value={searchInput} onChange={handleSearchChange} />
+		</label>
+	);
+};
+
 const App = () => {
 	const [searchInput, setSearchInput] = useState("");
 	const [countries, setCountries] = useState([]);
-	const [country, setCountry] = useState({});
+
 	useEffect(() => {
 		countryService.getAll().then((countries) => {
 			setCountries(countries);
@@ -64,8 +102,8 @@ const App = () => {
 	}, []);
 
 	const handleSearchChange = (event) => {
-		setSearchInput(event.target.value);
 		console.log(event.target.value);
+		setSearchInput(event.target.value);
 	};
 
 	const filteredCountries =
@@ -77,17 +115,17 @@ const App = () => {
 
 	return (
 		<>
-			<label>
-				find countries
-				<input value={searchInput} onChange={handleSearchChange} />
-			</label>
+			<Filter
+				handleSearchChange={handleSearchChange}
+				searchInput={searchInput}
+			/>
+
 			<h2>Countries</h2>
 			<CountriesList
 				searchInput={searchInput}
 				filteredCountries={filteredCountries}
 			/>
 			<Country filteredCountries={filteredCountries} />
-			<Country filteredCountries={country} />
 		</>
 	);
 };
