@@ -26,6 +26,9 @@ let persons = [
 
 app.use(express.json());
 
+
+app.use(express.json());
+
 app.get("/", (request, response) => {
 	response.send("<h1>Hello World!</h1>");
 });
@@ -57,6 +60,43 @@ app.delete("/api/persons/:id", (request, response) => {
 	persons = persons.filter((person) => person.id !== id);
 
 	response.status(204).end();
+});
+
+const generateId = () => {
+	const maxId =
+		persons.length > 0 ? Math.max(...persons.map((n) => Number(n.id))) : 0;
+	return String(maxId + 1);
+};
+
+app.post("/api/persons", (request, response) => {
+	const body = request.body;
+	const person = {
+		id: generateId(),
+		name: body.name,
+		number: body.number,
+	};
+
+	if (!body.name) {
+		return response.status(400).json({
+			error: "name missing",
+		});
+	}
+
+	if (!body.number) {
+		return response.status(400).json({
+			error: "number missing",
+		});
+	}
+
+	if (persons.filter((p) => p.name === person.name)) {
+		return response.status(400).json({
+			error: "already in phonebook",
+		});
+	}
+
+	persons = persons.concat(person);
+
+	response.json(person);
 });
 
 const PORT = 3001;
