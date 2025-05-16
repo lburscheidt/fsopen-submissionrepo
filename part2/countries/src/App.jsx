@@ -4,14 +4,6 @@ import countryService from "./services/countries";
 import "./index.css";
 import Weather from "./components/Weather";
 
-const Button = ({ country }) => {
-	return (
-		<button type="button" onClick={() => console.log(country)}>
-			Show
-		</button>
-	);
-};
-
 const Country = ({ ctry }) => {
 	const country = ctry;
 	const cca3 = country.cca3;
@@ -40,6 +32,12 @@ const Country = ({ ctry }) => {
 };
 
 const CountriesList = ({ searchInput, filteredCountries }) => {
+	const [showCountry, setShowCountry] = useState([]);
+
+	useEffect(() => {
+		setShowCountry(filteredCountries);
+	}, [filteredCountries]);
+
 	if (searchInput === "") {
 		return <div>No search input yet</div>;
 	}
@@ -49,14 +47,24 @@ const CountriesList = ({ searchInput, filteredCountries }) => {
 	}
 	if (filteredCountries.length <= 10 && filteredCountries.length > 1) {
 		return (
-			<div>
-				{filteredCountries.map((c) => (
-					<p key={c.cca3}>
-						{c.name.common}
-						<Button country={c} />
-					</p>
+			<ul className="no-bullets">
+				{showCountry.map((country, index) => (
+					<li key={index}>
+						{country.name.common}
+						<input
+							key={index}
+							type="button"
+							value={showCountry[index].show ? "hide" : "show"}
+							onClick={() => {
+								const copy = [...showCountry];
+								copy[index].show = !copy[index].show;
+								setShowCountry(copy);
+							}}
+						/>
+						{country.show ? <Country ctry={country} /> : null}
+					</li>
 				))}
-			</div>
+			</ul>
 		);
 	}
 	if (filteredCountries.length === 1) {
