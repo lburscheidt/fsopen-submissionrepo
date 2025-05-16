@@ -4,6 +4,14 @@ import countryService from "./services/countries";
 import "./index.css";
 import Weather from "./components/Weather";
 
+const Button = ({ country }) => {
+	return (
+		<button type="button" onClick={() => console.log(country)}>
+			Show
+		</button>
+	);
+};
+
 const Country = ({ ctry }) => {
 	const country = ctry;
 	const cca3 = country.cca3;
@@ -45,7 +53,7 @@ const CountriesList = ({ searchInput, filteredCountries }) => {
 				{filteredCountries.map((c) => (
 					<p key={c.cca3}>
 						{c.name.common}
-						<button type="button">Show</button>
+						<Button country={c} />
 					</p>
 				))}
 			</div>
