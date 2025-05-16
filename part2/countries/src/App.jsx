@@ -4,33 +4,31 @@ import countryService from "./services/countries";
 import "./index.css";
 import Weather from "./components/Weather";
 
-const Country = ({ filteredCountries }) => {
-	if (filteredCountries.length === 1) {
-		const country = filteredCountries[0];
-		const cca3 = country.cca3;
-		const name = country.name.common;
-		const capital = country.capital[0];
-		const area = country.area;
-		const languages = country.languages;
-		const flag = country.flags.png;
-		const lat = country.capitalInfo.latlng[0];
-		const lon = country.capitalInfo.latlng[1];
-		return (
-			<div key={cca3}>
-				<h1>{name}</h1>
-				<p>Capital {capital}</p>
-				<p>Area {area}</p>
-				<h2>Languages</h2>
-				<ul>
-					{Object.values(languages).map((value) => (
-						<li key={value}>{value}</li>
-					))}
-				</ul>
-				<img className="flag" src={flag} alt={`Flag of ${name}`} />
-				<Weather lat={lat} lon={lon} capital={capital} />
-			</div>
-		);
-	}
+const Country = ({ ctry }) => {
+	const country = ctry;
+	const cca3 = country.cca3;
+	const name = country.name.common;
+	const capital = country.capital[0];
+	const area = country.area;
+	const languages = country.languages;
+	const flag = country.flags.png;
+	const lat = country.capitalInfo.latlng[0];
+	const lon = country.capitalInfo.latlng[1];
+	return (
+		<div key={cca3}>
+			<h1>{name}</h1>
+			<p>Capital {capital}</p>
+			<p>Area {area}</p>
+			<h2>Languages</h2>
+			<ul>
+				{Object.values(languages).map((value) => (
+					<li key={value}>{value}</li>
+				))}
+			</ul>
+			<img className="flag" src={flag} alt={`Flag of ${name}`} />
+			<Weather lat={lat} lon={lon} capital={capital} />
+		</div>
+	);
 };
 
 const CountriesList = ({ searchInput, filteredCountries }) => {
@@ -54,7 +52,7 @@ const CountriesList = ({ searchInput, filteredCountries }) => {
 		);
 	}
 	if (filteredCountries.length === 1) {
-		return <div>No list</div>;
+		return <Country ctry={filteredCountries[0]} />;
 	}
 };
 
@@ -95,13 +93,10 @@ const App = () => {
 				handleSearchChange={handleSearchChange}
 				searchInput={searchInput}
 			/>
-
-			<h2>Countries</h2>
 			<CountriesList
 				searchInput={searchInput}
 				filteredCountries={filteredCountries}
 			/>
-			<Country filteredCountries={filteredCountries} />
 		</>
 	);
 };
