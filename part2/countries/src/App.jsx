@@ -43,10 +43,10 @@ const CountriesList = ({ searchInput, filteredCountries }) => {
 		return (
 			<div>
 				{filteredCountries.map((c) => (
-					<form key={c.cca3}>
+					<p key={c.cca3}>
 						{c.name.common}
-						<button type="submit">Show</button>
-					</form>
+						<button type="button">Show</button>
+					</p>
 				))}
 			</div>
 		);
