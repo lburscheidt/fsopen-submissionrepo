@@ -27,19 +27,19 @@ if (process.argv.length < 3) {
 	process.exit(1);
 }
 
-if (process.argv.length === 3) {
-	console.log("connected");
-	Person.find({}).then((result) => {
-		result.forEach((person) => {
-			console.log(person.name, person.number);
-		});
+if (process.argv.length === 5) {
+	person.save().then((result) => {
+		console.log(`added ${person.name} ${person.number}!`);
 		mongoose.connection.close();
 	});
 }
 
-if (process.argv.length === 5) {
-	person.save().then((result) => {
-		console.log(`added ${person.name} ${person.number}!`);
+if (process.argv.length === 3) {
+	console.log("connected");
+	Person.find({}).then((result) => {
+		for (const p of result) {
+			console.log(p.name, p.number);
+		}
 		mongoose.connection.close();
 	});
 }
