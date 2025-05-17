@@ -2,6 +2,25 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const password = process.argv[2];
+const url = `mongodb+srv://burscheidt:${password}@cluster0.pmxvhmu.mongodb.net/phonebook?retryWrites=true&w=majority&appName=Cluster0`;
+const personSchema = new mongoose.Schema({
+	name: String,
+	number: String,
+});
+const Person = mongoose.model("Person", personSchema);
+
+personSchema.set("toJSON", {
+	transform: (document, returnedObject) => {
+		returnedObject.id = returnedObject._id.toString();
+		delete returnedObject._id;
+		delete returnedObject.__v;
+	},
+});
+
+mongoose.set("strictQuery", false);
+mongoose.connect(url);
 
 morgan.token("personData", (req) => {
 	if (req.method === "POST") {
@@ -46,7 +65,9 @@ app.get("/", (request, response) => {
 });
 
 app.get("/api/persons", (request, response) => {
-	response.json(persons);
+	Person.find({}).then((persons) => {
+		response.json(persons);
+	});
 });
 
 app.get("/info", (request, response) => {
