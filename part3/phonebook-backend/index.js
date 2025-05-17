@@ -3,15 +3,16 @@ const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
 
-app.use(cors());
-
 morgan.token("personData", (req) => {
 	if (req.method === "POST") {
 		return JSON.stringify(req.body);
 	}
 });
 
+app.use(cors());
 app.use(morgan(":method :url :response-time :personData"));
+app.use(express.json());
+app.use(express.static("dist"));
 
 let persons = [
 	{
@@ -81,6 +82,7 @@ const generateId = () => {
 
 app.post("/api/persons", (request, response) => {
 	const body = request.body;
+
 	const person = {
 		id: generateId(),
 		name: body.name,
@@ -99,7 +101,11 @@ app.post("/api/persons", (request, response) => {
 		});
 	}
 
-	if (persons.filter((p) => p.name === person.name)) {
+	if (
+		persons.find((obj) => {
+			return obj.name === person.name;
+		})
+	) {
 		return response.status(400).json({
 			error: "already in phonebook",
 		});
@@ -110,6 +116,6 @@ app.post("/api/persons", (request, response) => {
 	response.json(person);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT);
 console.log(`Server running on port ${PORT}`);
