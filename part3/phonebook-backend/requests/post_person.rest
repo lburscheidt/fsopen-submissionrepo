@@ -8,6 +8,8 @@ content-type: application/json
 
 ###
 
+GET http://localhost:3001/api/persons/
+
 GET https://phonebook-backend-muddy-meadow-6648.fly.dev/api/persons/ 
 
 ###

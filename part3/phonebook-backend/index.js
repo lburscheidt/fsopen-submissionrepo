@@ -1,26 +1,15 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const password = process.argv[2];
-const url = `mongodb+srv://burscheidt:${password}@cluster0.pmxvhmu.mongodb.net/phonebook?retryWrites=true&w=majority&appName=Cluster0`;
-const personSchema = new mongoose.Schema({
+
+/*const personSchema = new mongoose.Schema({
 	name: String,
 	number: String,
-});
-const Person = mongoose.model("Person", personSchema);
+});*/
+const Person = require("./models/person");
 
-personSchema.set("toJSON", {
-	transform: (document, returnedObject) => {
-		returnedObject.id = returnedObject._id.toString();
-		returnedObject._id = undefined;
-		returnedObject.__v = undefined;
-	},
-});
-
-mongoose.set("strictQuery", false);
-mongoose.connect(url);
+/*mongoose.set("strictQuery", false);*/
 
 morgan.token("personData", (req) => {
 	if (req.method === "POST") {
@@ -28,37 +17,9 @@ morgan.token("personData", (req) => {
 	}
 });
 
-app.use(cors());
 app.use(morgan(":method :url :response-time :personData"));
 app.use(express.json());
 app.use(express.static("dist"));
-
-let persons = [
-	{
-		id: "1",
-		name: "Arto Hellas",
-		number: "040-123456",
-	},
-	{
-		id: "2",
-		name: "Ada Lovelace",
-		number: "39-44-5323523",
-	},
-	{
-		id: "3",
-		name: "Dan Abramov",
-		number: "12-43-234345",
-	},
-	{
-		id: "4",
-		name: "Mary Poppendieck",
-		number: "39-23-6423122",
-	},
-];
-
-app.use(express.json());
-
-app.use(express.json());
 
 app.get("/", (request, response) => {
 	response.send("<h1>Hello World!</h1>");
@@ -77,22 +38,25 @@ app.get("/info", (request, response) => {
 	);
 });
 
-app.get("/api/persons/:id", (request, response) => {
-	const id = request.params.id;
-	const person = persons.find((person) => person.id === id);
+app.get("/api/notes/:id", (request, response, next) => {
+	Person.findById(request.params.id)
+		.then((person) => {
+			if (person) {
+				response.json(person);
+			} else {
+				response.status(404).end();
+			}
+		})
 
-	if (person) {
-		response.json(person);
-	} else {
-		response.status(404).end();
-	}
+		.catch((error) => next(error));
 });
 
-app.delete("/api/persons/:id", (request, response) => {
-	const id = request.params.id;
-	persons = persons.filter((person) => person.id !== id);
-
-	response.status(204).end();
+app.delete("/api/persons/:id", (request, response, next) => {
+	Person.findByIdAndDelete(request.params.id)
+		.then((result) => {
+			response.status(204).end();
+		})
+		.catch((error) => next(error));
 });
 
 const generateId = () => {
@@ -104,39 +68,57 @@ const generateId = () => {
 app.post("/api/persons", (request, response) => {
 	const body = request.body;
 
-	const person = {
-		id: generateId(),
-		name: body.name,
-		number: body.number,
-	};
-
 	if (!body.name) {
-		return response.status(400).json({
-			error: "name missing",
-		});
+		return response.status(400).json({ error: "name missing" });
 	}
 
 	if (!body.number) {
-		return response.status(400).json({
-			error: "number missing",
-		});
+		return response.status(400).json({ error: "number missing" });
 	}
 
-	if (
-		persons.find((obj) => {
-			return obj.name === person.name;
-		})
-	) {
-		return response.status(400).json({
-			error: "already in phonebook",
-		});
-	}
+	const person = new Person({
+		name: body.name,
+		number: body.number,
+	});
 
-	persons = persons.concat(person);
-
-	response.json(person);
+	person.save().then((savedPerson) => {
+		response.json(savedPerson);
+	});
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT);
-console.log(`Server running on port ${PORT}`);
+app.put("/api/persons/:id", (request, response, next) => {
+	const { name, number } = request.body;
+
+	Person.findById(request.params.id)
+		.then((person) => {
+			if (!person) {
+				return response.status(404).end();
+			}
+
+			person.name = name;
+			person.number = number;
+
+			return person.save().then((updatedPerson) => {
+				response.json(updatedPerson);
+			});
+		})
+		.catch((error) => next(error));
+});
+
+const errorHandler = (error, request, response, next) => {
+	console.error(error.message);
+
+	if (error.name === "CastError") {
+		return response.status(400).send({ error: "malformatted id" });
+	}
+
+	next(error);
+};
+
+// this has to be the last loaded middleware, also all the routes should be registered before this!
+app.use(errorHandler);
+
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+	console.log(`Server running on port ${PORT}`);
+});
