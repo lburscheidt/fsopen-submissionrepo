@@ -111,7 +111,7 @@ const App = () => {
 				)
 			) {
 				personService
-					.update(id, newPerson)
+					.update(id, newPerson, { runValidators: true })
 					.then((response) => {
 						setSuccessMessage(`Successfully added new number for ${newName}`);
 						setTimeout(() => {
@@ -119,7 +119,8 @@ const App = () => {
 						}, 5000);
 					})
 					.catch((error) => {
-						setErrorMessage(`${newName} was already removed from the server`);
+						const msg = error.response.data.error;
+						setErrorMessage(`${msg}`);
 						setTimeout(() => {
 							setErrorMessage("");
 						}, 5000);
@@ -130,13 +131,22 @@ const App = () => {
 				});
 			}
 		} else {
-			setPersons(persons.concat(newPerson));
-			personService.create(newPerson).then((response) => {
-				setSuccessMessage(`Successfully added ${newName}`);
-				setTimeout(() => {
-					setSuccessMessage("");
-				}, 5000);
-			});
+			personService
+				.create(newPerson)
+				.then((newPerson) => {
+					setPersons(persons.concat(newPerson));
+					setSuccessMessage(`Successfully added ${newName}`);
+					setTimeout(() => {
+						setSuccessMessage("");
+					}, 5000);
+				})
+				.catch((error) => {
+					const msg = error.response.data.error;
+					setErrorMessage(`${msg}`);
+					setTimeout(() => {
+						setErrorMessage("");
+					}, 5000);
+				});
 		}
 
 		setNewName("");
